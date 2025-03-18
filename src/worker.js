@@ -11,7 +11,7 @@ export default {
                 status: 204,
                 headers: {
                     "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                    "Access-Control-Allow-Methods": "GET, OPTIONS",
                     "Access-Control-Allow-Headers": "Authorization, Content-Type"
                 }
             });
@@ -21,7 +21,14 @@ export default {
         const originHeader = request.headers.get("Origin");
 
         if (!originHeader.startsWith(allowedOrigin)) {
-            return new Response("Forbidden", { status: 403 });
+            return new Response("Forbidden",
+                { status: 403,
+                    headers: {
+                        "Access-Control-Allow-Origin": "*",
+                        "Access-Control-Allow-Methods": "GET, OPTIONS",
+                        "Access-Control-Allow-Headers": "Authorization, Content-Type"
+                    }
+                });
         }
 
         do {
@@ -40,7 +47,7 @@ export default {
                     status: 400,
                     headers: {
                         "Access-Control-Allow-Origin": "*",
-                        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                        "Access-Control-Allow-Methods": "GET, OPTIONS",
                         "Access-Control-Allow-Headers": "Authorization, Content-Type"
                     }
                 });
