@@ -20,7 +20,7 @@ export default {
         const allowedOrigin = "https://main--eds-channel-tracker--clotton.aem";
         const originHeader = request.headers.get("Origin");
 
-        if (!originHeader.startsWith(allowedOrigin)) {
+        if (originHeader && !originHeader.startsWith(allowedOrigin)) {
             return new Response("Forbidden",
                 { status: 403,
                     headers: {
