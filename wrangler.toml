@@ -1,0 +1,5 @@
+name = "eds-channels"
+main = "src/worker.js"
+compatibility_date = "2025-03-13"
+workers_dev = true
+preview_urls = false
