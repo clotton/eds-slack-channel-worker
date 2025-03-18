@@ -17,7 +17,12 @@ export default {
             });
         }
 
+        const allowedOrigin = "https://main--eds-channel-tracker--clotton.aem";
+        const originHeader = request.headers.get("Origin");
 
+        if (!originHeader.startsWith(allowedOrigin)) {
+            return new Response("Forbidden", { status: 403 });
+        }
 
         do {
             const url = cursor ? `${SLACK_API_URL}&cursor=${cursor}` : SLACK_API_URL;
