@@ -32,7 +32,7 @@ export default {
     if (url.pathname === "/slack/channels") {
       return handleChannels(SLACK_API_KEY);
     } else if (url.pathname === "/slack/lastmessage") {
-      return handleLastMessage(SLACK_API_KEY,"C06NL0BADDK");
+      return handleLastMessage(SLACK_USER_KEY,"C06NL0BADDK");
     }
     else {
       return new Response("Not Found", { status: 404 });
