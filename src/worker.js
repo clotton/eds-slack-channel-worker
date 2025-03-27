@@ -5,7 +5,7 @@ export default {
     const allowedOrigin = "https://main--eds-channel-tracker--aemdemos.aem";
     const originHeader = request.headers.get("Origin");
     const baseUrl = new URL(request.url);
-    const url = new URL('/slack/channels', baseUrl);
+    const path = new URL(request.url).pathname;
 
     if (request.method === 'OPTIONS') {
       return new Response(null, {
@@ -29,9 +29,9 @@ export default {
       });
     }
 
-    if (url.pathname === "/slack/channels") {
+    if (path === "/slack/channels") {
       return handleChannels(SLACK_API_KEY);
-    } else if (url.pathname === "/slack/lastmessage") {
+    } else if (path === "/slack/lastmessage") {
       return handleLastMessage(SLACK_USER_KEY,"C06NL0BADDK");
     }
     else {
