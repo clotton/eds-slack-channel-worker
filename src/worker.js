@@ -4,7 +4,6 @@ export default {
     const SLACK_USER_KEY=`${env.SLACK_USER_KEY}`;
     const allowedOrigin = "https://main--eds-channel-tracker--aemdemos.aem";
     const originHeader = request.headers.get("Origin");
-    const baseUrl = new URL(request.url);
     const path = new URL(request.url).pathname;
 
     if (request.method === 'OPTIONS') {
