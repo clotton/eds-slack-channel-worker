@@ -4,6 +4,8 @@ export default {
     const SLACK_USER_KEY=`${env.SLACK_USER_KEY}`;
     const allowedOrigin = "https://main--eds-channel-tracker--aemdemos.aem";
     const originHeader = request.headers.get("Origin");
+    const baseUrl = new URL(request.url);
+    const url = new URL('/slack/channels', baseUrl);
 
     if (request.method === 'OPTIONS') {
       return new Response(null, {
@@ -27,10 +29,10 @@ export default {
       });
     }
 
-    if (request.url.pathname === "/slack/channels") {
+    if (url.pathname === "/slack/channels") {
       return handleChannels(SLACK_API_KEY);
-    } else if (request.url.pathname === "/slack/lastmessage") {
-      return handleLastMessage(SLACK_USER_KEY,request.url.searchParams("channelId"));
+    } else if (url.pathname === "/slack/lastmessage") {
+      return handleLastMessage(SLACK_API_KEY,"C06NL0BADDK");
     }
     else {
       return new Response("Not Found", { status: 404 });
