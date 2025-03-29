@@ -80,8 +80,9 @@ async function handleLastMessage(token, channelId) {
     }
   });
 
-  const data = await handleApiResponse(response);
-  return jsonResponse(data.messages?.[0]);
+  //const data = await handleApiResponse(response);
+  //return jsonResponse(data.messages?.[0]);
+  return response;
 }
 
 const handleApiResponse = async (response) => {
