@@ -1,7 +1,8 @@
 export default {
   async fetch(request, env) {
     const { SLACK_BOT_KEY, SLACK_USER_KEY } = env;
-    const allowedOrigin = "https://main--eds-channel-tracker--aemdemos.aem";
+    const allowedOriginPattern = /^https:\/\/.*--eds-channel-tracker--aemdemos\.aem$/;
+
     const originHeader = request.headers.get("Origin");
     const requestUrl = new URL(request.url);
     const path = requestUrl.pathname;
@@ -13,7 +14,11 @@ export default {
       });
     }
 
-    if (originHeader && !originHeader.startsWith(allowedOrigin)) {
+    function isAllowedOrigin(origin) {
+      return allowedOriginPattern.test(origin);
+    }
+
+    if (originHeader && !isAllowedOrigin(originHeader)) {
       return new Response("Forbidden", {
         status: 403,
         headers: corsHeaders()
@@ -80,8 +85,9 @@ async function handleLastMessage(token, channelId) {
     }
   });
 
-  const data = await handleApiResponse(response);
-  return jsonResponse(data.messages?.[0]);
+  //const data = await handleApiResponse(response);
+  //return jsonResponse(data.messages?.[0]);
+  return response;
 }
 
 const handleApiResponse = async (response) => {
