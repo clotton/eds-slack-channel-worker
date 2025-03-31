@@ -1,7 +1,7 @@
 export default {
   async fetch(request, env) {
     const { SLACK_BOT_KEY, SLACK_USER_KEY } = env;
-    const allowedOrigin = "https://main--eds-channel-tracker--aemdemos.aem";
+    const allowedOrigin = "eds-channel-tracker--aemdemos.aem";
     const originHeader = request.headers.get("Origin");
     const requestUrl = new URL(request.url);
     const path = requestUrl.pathname;
@@ -13,14 +13,13 @@ export default {
       });
     }
 
-    /*
-    if (originHeader && !originHeader.startsWith(allowedOrigin)) {
+    if (originHeader && !originHeader.contains(allowedOrigin)) {
       return new Response("Forbidden", {
         status: 403,
         headers: corsHeaders()
       });
     }
-*/
+
     if (path === "/slack/channels") {
       return handleChannels(SLACK_BOT_KEY);
     } else if (path === "/slack/lastmessage") {
