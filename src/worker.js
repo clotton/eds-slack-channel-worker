@@ -43,6 +43,15 @@ export default {
         });
       }
       return handleMembers(SLACK_BOT_KEY, channelId);
+    } else if (path === "/slack/user/info") {
+      const userId = requestUrl.searchParams.get("userId");
+      if (!userId) {
+        return new Response("Bad Request: Missing userId", {
+          status: 400,
+          headers: corsHeaders()
+        });
+      }
+      return handleUserInfo(SLACK_BOT_KEY,userId);
     } else {
       return new Response("Not Found", {
         status: 404,
@@ -98,6 +107,17 @@ async function handleMessage(token, channelId) {
 
 async function handleMembers(token, channelId) {
   const apiUrl = `https://slack.com/api/conversations.members?channel=${channelId}`;
+  return await fetch(apiUrl, {
+    method: "GET",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    }
+  });
+}
+
+async function handleUserInfo(token, userId) {
+  const apiUrl = `https://slack.com/api/users.info?user=${userId}`;
   return await fetch(apiUrl, {
     method: "GET",
     headers: {
