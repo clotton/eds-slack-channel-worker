@@ -22,7 +22,7 @@ export default {
 
     if (path === "/slack/channels") {
       return handleChannels(SLACK_BOT_KEY);
-    } else if (path === "/slack/lastmessage") {
+    } else if (path === "/slack/latest/message") {
       const channelId = requestUrl.searchParams.get("channelId");
       if (!channelId) {
         return new Response("Bad Request: Missing channelId", {
@@ -30,7 +30,16 @@ export default {
           headers: corsHeaders()
         });
       }
-      return handleLastMessage(SLACK_USER_KEY,channelId);
+      return handleMessage(SLACK_USER_KEY, channelId);
+    } else if (path === "/slack/members") {
+      const channelId = requestUrl.searchParams.get("channelId");
+      if (!channelId) {
+        return new Response("Bad Request: Missing channelId", {
+          status: 400,
+          headers: corsHeaders()
+        });
+    }
+      return handleMembers(SLACK_BOT_KEY,channelId);
     }
     else {
        return new Response("Not Found", {
@@ -70,19 +79,26 @@ async function handleChannels(token) {
   return jsonResponse(allChannels);
 }
 
-async function handleLastMessage(token, channelId) {
+async function handleMessage(token, channelId) {
   const apiUrl = `https://slack.com/api/conversations.history?channel=${channelId}&limit=1`;
-  const response = await fetch(apiUrl, {
+  return await fetch(apiUrl, {
     method: "GET",
     headers: {
       "Authorization": `Bearer ${token}`,
       "Content-Type": "application/json"
     }
   });
+}
 
-  //const data = await handleApiResponse(response);
-  //return jsonResponse(data.messages?.[0]);
-  return response;
+async function handleMembers(token, channelId) {
+  const apiUrl = `https://slack.com/api/conversations.members?channel=${channelId}`;
+  return await fetch(apiUrl, {
+    method: "GET",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    }
+  });
 }
 
 const handleApiResponse = async (response) => {
