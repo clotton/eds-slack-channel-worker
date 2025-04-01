@@ -33,7 +33,16 @@ export default {
           headers: corsHeaders()
         });
       }
-      return handleLastMessage(SLACK_USER_KEY, channelId);
+      return handleMessage(SLACK_USER_KEY, channelId);
+    } else if (path === "/slack/members") {
+      const channelId = requestUrl.searchParams.get("channelId");
+      if (!channelId) {
+        return new Response("Bad Request: Missing channelId", {
+          status: 400,
+          headers: corsHeaders()
+        });
+      }
+      return handleMembers(SLACK_BOT_KEY, channelId);
     } else {
       return new Response("Not Found", {
         status: 404,
@@ -76,16 +85,26 @@ async function handleChannels(token, channelName, description) {
   return jsonResponse(allChannels);
 }
 
-async function handleLastMessage(token, channelId) {
+async function handleMessage(token, channelId) {
   const apiUrl = `https://slack.com/api/conversations.history?channel=${channelId}&limit=1`;
-  const response = await fetch(apiUrl, {
+  return await fetch(apiUrl, {
     method: "GET",
     headers: {
       "Authorization": `Bearer ${token}`,
       "Content-Type": "application/json"
     }
   });
-  return response;
+}
+
+async function handleMembers(token, channelId) {
+  const apiUrl = `https://slack.com/api/conversations.members?channel=${channelId}`;
+  return await fetch(apiUrl, {
+    method: "GET",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    }
+  });
 }
 
 const handleApiResponse = async (response) => {
