@@ -25,7 +25,7 @@ export default {
       const description = (requestUrl.searchParams.get("description") || "Edge Delivery").replace(/\*/g, "");
 
       return handleChannels(SLACK_BOT_KEY, channelName, description);
-    } else if (path === "/slack/lastmessage") {
+    } else if (path === "/slack/latest/message") {
       const channelId = requestUrl.searchParams.get("channelId");
       if (!channelId) {
         return new Response("Bad Request: Missing channelId", {
