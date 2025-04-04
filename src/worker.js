@@ -25,7 +25,7 @@ export default {
       const description = (requestUrl.searchParams.get("description") || "Edge Delivery").replace(/\*/g, "");
 
       return handleChannels(SLACK_BOT_KEY, channelName, description);
-    } else if (path === "/slack/latest/message") {
+    } else if (path === "/slack/messageStats") {
       const channelId = requestUrl.searchParams.get("channelId");
       if (!channelId) {
         return new Response("Bad Request: Missing channelId", {
@@ -33,7 +33,7 @@ export default {
           headers: corsHeaders()
         });
       }
-      return handleMessage(SLACK_USER_KEY, channelId);
+      return handleMessageStats(SLACK_USER_KEY, channelId);
     } else if (path === "/slack/members") {
       const channelId = requestUrl.searchParams.get("channelId");
       if (!channelId) {
@@ -94,15 +94,35 @@ async function handleChannels(token, channelName, description) {
   return jsonResponse(allChannels);
 }
 
-async function handleMessage(token, channelId) {
-  const apiUrl = `https://slack.com/api/conversations.history?channel=${channelId}&limit=1`;
-  return await fetch(apiUrl, {
-    method: "GET",
-    headers: {
-      "Authorization": `Bearer ${token}`,
-      "Content-Type": "application/json"
-    }
-  });
+async function handleMessageStats(token, channelId) {
+  const SLACK_API_URL = `https://slack.com/api/conversations.history?channel=${channelId}&limit=100`;
+  let messageCount = 0;
+  let cursor = null;
+  let lastMessageTimestamp = null;
+
+ do {
+    const apiUrl = cursor ? `${SLACK_API_URL}&cursor=${cursor}` : SLACK_API_URL;
+    let response = await fetch(apiUrl, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    const data = await handleApiResponse(response);
+   if (data.messages && data.messages.length > 0) {
+     messageCount += data.messages.length;
+     lastMessageTimestamp = data.messages[data.messages.length - 1].ts;
+   }
+
+  cursor = data.response_metadata?.next_cursor || null;
+} while (cursor);
+
+  console.log("Total messages found:", messageCount);
+  console.log("Last message timestamp:", lastMessageTimestamp);
+
+  return jsonResponse({ messageCount, lastMessageTimestamp });
 }
 
 async function handleMembers(token, channelId) {
