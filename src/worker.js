@@ -113,7 +113,7 @@ async function handleMessageStats(token, channelId) {
     const data = await handleApiResponse(response);
    if (data.messages && data.messages.length > 0) {
      messageCount += data.messages.length;
-     lastMessageTimestamp = data.messages[data.messages.length - 1].ts;
+     lastMessageTimestamp = data.messages[0].ts;
    }
 
   cursor = data.response_metadata?.next_cursor || null;
