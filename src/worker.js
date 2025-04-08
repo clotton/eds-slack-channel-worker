@@ -99,8 +99,9 @@ async function handleMessageStats(token, channelId) {
   let messageCount = 0;
   let cursor = null;
   let lastMessageTimestamp = null;
+  const thirtyDaysAgo = (Date.now() / 1000) - (30 * 24 * 60 * 60);
 
- do {
+  do {
     const apiUrl = cursor ? `${SLACK_API_URL}&cursor=${cursor}` : SLACK_API_URL;
     let response = await fetch(apiUrl, {
       method: "GET",
@@ -111,15 +112,16 @@ async function handleMessageStats(token, channelId) {
     });
 
     const data = await handleApiResponse(response);
-   if (data.messages && data.messages.length > 0) {
-     messageCount += data.messages.length;
-     lastMessageTimestamp = data.messages[0].ts;
-   }
+    if (data.messages && data.messages.length > 0) {
+      const recentMessages = data.messages.filter(message => parseFloat(message.ts) >= thirtyDaysAgo);
+      messageCount += recentMessages.length;
+      lastMessageTimestamp = data.messages[0].ts;
+    }
 
-  cursor = data.response_metadata?.next_cursor || null;
-} while (cursor);
+    cursor = data.response_metadata?.next_cursor || null;
+  } while (cursor);
 
-  console.log("Total messages found:", messageCount);
+  console.log("Total messages in the last 30 days:", messageCount);
   console.log("Last message timestamp:", lastMessageTimestamp);
 
   return jsonResponse({ messageCount, lastMessageTimestamp });
