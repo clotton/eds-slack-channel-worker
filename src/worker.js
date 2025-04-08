@@ -13,13 +13,14 @@ export default {
       });
     }
 
+    /*
     if (originHeader && !originHeader.includes(allowedOrigin)) {
       return new Response("Forbidden", {
         status: 403,
         headers: corsHeaders()
       });
     }
-
+*/
     if (path === "/slack/channels") {
       const channelName = (requestUrl.searchParams.get("channelName") || "aem-").replace(/\*/g, "");
       const description = (requestUrl.searchParams.get("description") || "Edge Delivery").replace(/\*/g, "");
@@ -110,10 +111,12 @@ async function handleMessageStats(token, channelId) {
       }
     });
 
-    const data = await handleApiResponse(response);
+   const data = await handleApiResponse(response);
    if (data.messages && data.messages.length > 0) {
      messageCount += data.messages.length;
-     lastMessageTimestamp = data.messages[data.messages.length - 1].ts;
+     if (!lastMessageTimestamp) {
+       lastMessageTimestamp = data.messages[0].ts; // First message is newest
+     }
    }
 
   cursor = data.response_metadata?.next_cursor || null;
