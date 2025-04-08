@@ -13,14 +13,13 @@ export default {
       });
     }
 
-    /*
     if (originHeader && !originHeader.includes(allowedOrigin)) {
       return new Response("Forbidden", {
         status: 403,
         headers: corsHeaders()
       });
     }
-*/
+
     if (path === "/slack/channels") {
       const channelName = (requestUrl.searchParams.get("channelName") || "aem-").replace(/\*/g, "");
       const description = (requestUrl.searchParams.get("description") || "Edge Delivery").replace(/\*/g, "");
@@ -97,11 +96,11 @@ async function handleChannels(token, channelName, description) {
 
 async function handleMessageStats(token, channelId) {
   const SLACK_API_URL = `https://slack.com/api/conversations.history?channel=${channelId}&limit=100`;
-  let messageCount = 0;
+  let allMessages = [];
   let cursor = null;
-  let lastMessageTimestamp = null;
+  const thirtyDaysAgo = (Date.now() / 1000) - (30 * 24 * 60 * 60);
 
- do {
+  do {
     const apiUrl = cursor ? `${SLACK_API_URL}&cursor=${cursor}` : SLACK_API_URL;
     let response = await fetch(apiUrl, {
       method: "GET",
@@ -111,19 +110,25 @@ async function handleMessageStats(token, channelId) {
       }
     });
 
-   const data = await handleApiResponse(response);
-   if (data.messages && data.messages.length > 0) {
-     messageCount += data.messages.length;
-     if (!lastMessageTimestamp) {
-       lastMessageTimestamp = data.messages[0].ts; // First message is newest
-     }
-   }
+    const data = await handleApiResponse(response);
+    if (data.messages && data.messages.length > 0) {
+      allMessages.push(...data.messages);
+    }
 
-  cursor = data.response_metadata?.next_cursor || null;
-} while (cursor);
+    cursor = data.response_metadata?.next_cursor || null;
+  } while (cursor);
 
-  console.log("Total messages found:", messageCount);
-  console.log("Last message timestamp:", lastMessageTimestamp);
+  // Sort all messages by timestamp in ascending order
+  allMessages.sort((a, b) => parseFloat(a.ts) - parseFloat(b.ts));
+
+  // Filter messages that are 30 days old or newer
+  const recentMessages = allMessages.filter(message => parseFloat(message.ts) >= thirtyDaysAgo);
+
+  const messageCount = recentMessages.length;
+  const lastMessageTimestamp = allMessages.length > 0 ? allMessages[allMessages.length - 1].ts : null;
+
+  console.log("Total messages in the last 30 days:", messageCount);
+  console.log("Last message timestamp in the sorted array:", lastMessageTimestamp);
 
   return jsonResponse({ messageCount, lastMessageTimestamp });
 }
