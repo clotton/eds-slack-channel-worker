@@ -96,9 +96,8 @@ async function handleChannels(token, channelName, description) {
 
 async function handleMessageStats(token, channelId) {
   const SLACK_API_URL = `https://slack.com/api/conversations.history?channel=${channelId}&limit=100`;
-  let messageCount = 0;
+  let allMessages = [];
   let cursor = null;
-  let lastMessageTimestamp = null;
   const thirtyDaysAgo = (Date.now() / 1000) - (30 * 24 * 60 * 60);
 
   do {
@@ -113,16 +112,23 @@ async function handleMessageStats(token, channelId) {
 
     const data = await handleApiResponse(response);
     if (data.messages && data.messages.length > 0) {
-      const recentMessages = data.messages.filter(message => parseFloat(message.ts) >= thirtyDaysAgo);
-      messageCount += recentMessages.length;
-      lastMessageTimestamp = data.messages[0].ts;
+      allMessages.push(...data.messages);
     }
 
     cursor = data.response_metadata?.next_cursor || null;
   } while (cursor);
 
+  // Sort all messages by timestamp in ascending order
+  allMessages.sort((a, b) => parseFloat(a.ts) - parseFloat(b.ts));
+
+  // Filter messages that are 30 days old or newer
+  const recentMessages = allMessages.filter(message => parseFloat(message.ts) >= thirtyDaysAgo);
+
+  const messageCount = recentMessages.length;
+  const lastMessageTimestamp = allMessages.length > 0 ? allMessages[allMessages.length - 1].ts : null;
+
   console.log("Total messages in the last 30 days:", messageCount);
-  console.log("Last message timestamp:", lastMessageTimestamp);
+  console.log("Last message timestamp in the sorted array:", lastMessageTimestamp);
 
   return jsonResponse({ messageCount, lastMessageTimestamp });
 }
