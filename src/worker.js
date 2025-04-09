@@ -126,11 +126,9 @@ async function handleMessageStats(token, channelId) {
 
   const messageCount = recentMessages.length;
   const lastMessageTimestamp = allMessages.length > 0 ? allMessages[allMessages.length - 1].ts : null;
+  const totalMessages = allMessages.length;
 
-  console.log("Total messages in the last 30 days:", messageCount);
-  console.log("Last message timestamp in the sorted array:", lastMessageTimestamp);
-
-  return jsonResponse({ messageCount, lastMessageTimestamp });
+  return jsonResponse({ totalMessages, messageCount, lastMessageTimestamp });
 }
 
 async function handleMembers(token, channelId) {
