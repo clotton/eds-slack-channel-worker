@@ -95,7 +95,7 @@ async function handleChannels(token, channelName, description) {
 }
 
 async function handleMessageStats(token, channelId) {
-  const SLACK_API_URL = `https://slack.com/api/conversations.history?channel=${channelId}&limit=100`;
+  const SLACK_API_URL = `https://slack.com/api/conversations.history?channel=${channelId}`;
   let allMessages = [];
   let cursor = null;
   const thirtyDaysAgo = (Date.now() / 1000) - (30 * 24 * 60 * 60);
