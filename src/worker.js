@@ -12,14 +12,14 @@ export default {
         headers: corsHeaders()
       });
     }
-
+/*
     if (originHeader && !originHeader.includes(allowedOrigin)) {
       return new Response("Forbidden", {
         status: 403,
         headers: corsHeaders()
       });
     }
-
+*/
     if (path === "/slack/channels") {
       const channelName = (requestUrl.searchParams.get("channelName") || "aem-").replace(/\*/g, "");
       const description = (requestUrl.searchParams.get("description") || "Edge Delivery").replace(/\*/g, "");
@@ -67,6 +67,9 @@ const corsHeaders = () => ({
   'Access-Control-Allow-Headers': 'Authorization, Content-Type'
 });
 
+const isHumanMessage = (msg) =>
+    !msg.subtype && msg.user && !msg.bot_id;
+
 async function handleChannels(token, channelName, description) {
   const SLACK_API_URL = "https://slack.com/api/conversations.list?exclude_archived=true&limit=9999";
   let cursor = null, allChannels = [];
@@ -95,40 +98,36 @@ async function handleChannels(token, channelName, description) {
 }
 
 async function handleMessageStats(token, channelId) {
-  const SLACK_API_URL = `https://slack.com/api/conversations.history?channel=${channelId}`;
-  let allMessages = [];
-  let cursor = null;
+  const SLACK_API_URL = `https://slack.com/api/conversations.history?channel=${channelId}&limit=1000`;
   const thirtyDaysAgo = (Date.now() / 1000) - (30 * 24 * 60 * 60);
 
-  do {
-    const apiUrl = cursor ? `${SLACK_API_URL}&cursor=${cursor}` : SLACK_API_URL;
-    let response = await fetch(apiUrl, {
-      method: "GET",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
-      }
-    });
-
-    const data = await handleApiResponse(response);
-    if (data.messages && data.messages.length > 0) {
-      allMessages.push(...data.messages);
+  let response = await fetch(SLACK_API_URL, {
+    method: "GET",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
     }
+  });
 
-    cursor = data.response_metadata?.next_cursor || null;
-  } while (cursor);
+  if (!response.ok) {
+    return response;
+  }
+
+  const data = await response.json();
+
+  const humanMessages = data.messages.filter(isHumanMessage);
 
   // Sort all messages by timestamp in ascending order
-  allMessages.sort((a, b) => parseFloat(a.ts) - parseFloat(b.ts));
+  humanMessages.sort((a, b) => parseFloat(a.ts) - parseFloat(b.ts));
 
   // Filter messages that are 30 days old or newer
-  const recentMessages = allMessages.filter(message => parseFloat(message.ts) >= thirtyDaysAgo);
+  const recentMessages = humanMessages.filter(message => parseFloat(message.ts) >= thirtyDaysAgo);
 
-  const messageCount = recentMessages.length;
-  const lastMessageTimestamp = allMessages.length > 0 ? allMessages[allMessages.length - 1].ts : null;
-  const totalMessages = allMessages.length;
+  const recentMessageCount = recentMessages.length;
+  const lastMessageTimestamp = humanMessages.length > 0 ? humanMessages[humanMessages.length - 1].ts : null;
+  const totalMessages = humanMessages.length;
 
-  return jsonResponse({ totalMessages, messageCount, lastMessageTimestamp });
+  return jsonResponse({ totalMessages, recentMessageCount, lastMessageTimestamp });
 }
 
 async function handleMembers(token, channelId) {
