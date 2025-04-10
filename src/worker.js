@@ -12,14 +12,14 @@ export default {
         headers: corsHeaders()
       });
     }
-/*
+
     if (originHeader && !originHeader.includes(allowedOrigin)) {
       return new Response("Forbidden", {
         status: 403,
         headers: corsHeaders()
       });
     }
-*/
+
     if (path === "/slack/channels") {
       const channelName = (requestUrl.searchParams.get("channelName") || "aem-").replace(/\*/g, "");
       const description = (requestUrl.searchParams.get("description") || "Edge Delivery").replace(/\*/g, "");
