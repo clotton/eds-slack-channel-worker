@@ -1,10 +1,29 @@
 export default {
   async fetch(request, env) {
-    const { SLACK_BOT_KEY, SLACK_USER_KEY } = env;
+    const { SLACK_BOT_KEY, SLACK_USER_KEY, TURNSTILE_SECRET } = env;
     const allowedOrigin = "eds-channel-tracker--aemdemos.aem";
     const originHeader = request.headers.get("Origin");
     const requestUrl = new URL(request.url);
     const path = requestUrl.pathname;
+
+    const { turnstile_token } = await request.json();
+    const ip = request.headers.get("CF-Connecting-IP");
+
+    const formData = new FormData();
+    formData.append("secret", TURNSTILE_SECRET);
+    formData.append("response", turnstile_token);
+    formData.append("remoteip", ip);
+
+    const url = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
+    const result = await fetch(url, {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await result.json();
+    if (!data.success) {
+      return new Response("Unauthorized", { status: 401 });
+    }
 
     if (request.method === 'OPTIONS') {
       return new Response(null, {
@@ -13,13 +32,14 @@ export default {
       });
     }
 
+    /*
     if (originHeader && !originHeader.includes(allowedOrigin)) {
       return new Response("Forbidden", {
         status: 403,
         headers: corsHeaders()
       });
     }
-
+*/
     if (path === "/slack/channels") {
       const channelName = (requestUrl.searchParams.get("channelName") || "aem-").replace(/\*/g, "");
       const description = (requestUrl.searchParams.get("description") || "Edge Delivery").replace(/\*/g, "");
