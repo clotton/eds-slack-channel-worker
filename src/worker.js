@@ -1,6 +1,8 @@
 export default {
   async fetch(request, env) {
     const { SLACK_BOT_KEY, SLACK_USER_KEY } = env;
+    const allowedOrigin = "eds-channel-tracker--aemdemos.aem";
+    const originHeader = request.headers.get("Origin");
     const requestUrl = new URL(request.url);
     const path = requestUrl.pathname;
 
