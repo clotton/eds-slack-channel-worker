@@ -1,6 +1,6 @@
 export default {
   async fetch(request, env) {
-    const { SLACK_BOT_KEY, SLACK_USER_KEY, TURNSTILE_SECRET } = env;
+    const { SLACK_BOT_KEY, SLACK_USER_KEY } = env;
     const requestUrl = new URL(request.url);
     const path = requestUrl.pathname;
 
