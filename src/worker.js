@@ -17,6 +17,13 @@ export default {
     const requestUrl = new URL(request.url);
     const path = requestUrl.pathname;
 
+    if (request.method === 'OPTIONS') {
+      return new Response(null, {
+        status: 204,
+        headers: corsHeaders()
+      });
+    }
+
     const { turnstile_token } = await request.json();
     const ip = request.headers.get("CF-Connecting-IP");
 
@@ -33,15 +40,14 @@ export default {
 
     const data = await result.json();
     if (!data.success) {
-      return new Response("Unauthorized", { status: 401 });
+      return new Response("Unauthorized",
+          {
+            status: 401,
+            headers: corsHeaders()
+          });
     }
 
-    if (request.method === 'OPTIONS') {
-      return new Response(null, {
-        status: 204,
-        headers: corsHeaders()
-      });
-    }
+
 
     /*
     if (originHeader && !originHeader.includes(allowedOrigin)) {
