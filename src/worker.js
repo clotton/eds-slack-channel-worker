@@ -8,44 +8,11 @@ export default {
       return new Response(null, { status: 204, headers: corsHeaders() });
     }
 
-    let turnstile_token = null;
-
-    if (request.method === "POST") {
-      const contentType = request.headers.get("Content-Type") || "";
-      if (contentType.includes("application/json")) {
-        try {
-          const body = await request.json();
-          turnstile_token = body.turnstile_token;
-        } catch {
-          return new Response("Invalid JSON body", { status: 400, headers: corsHeaders() });
-        }
-      } else {
-        return new Response("Unsupported Content-Type", { status: 400, headers: corsHeaders() });
-      }
-
-      // Verify Turnstile token
-      const ip = request.headers.get("CF-Connecting-IP");
-      const formData = new FormData();
-      formData.append("secret", TURNSTILE_SECRET);
-      formData.append("response", turnstile_token);
-      if (ip) formData.append("remoteip", ip);
-
-      const verifyRes = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-        method: "POST",
-        body: formData
+    if (originHeader && !originHeader.includes(allowedOrigin)) {
+      return new Response("Forbidden", {
+        status: 403,
+        headers: corsHeaders()
       });
-
-      const verifyData = await verifyRes.json();
-      if (!verifyData.success) {
-        return new Response("Turnstile verification failed", { status: 401, headers: corsHeaders() });
-      }
-
-      if (path === "/turnstile-verify") {
-        return new Response("Turnstile verified", {
-          status: 200,
-          headers: corsHeaders()
-        });
-      }
     }
 
     if (path === "/slack/channels") {
