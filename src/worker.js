@@ -40,8 +40,7 @@ export default {
         return new Response("Turnstile verification failed", { status: 401, headers: corsHeaders() });
       }
 
-      // ✅ New endpoint
-      if (path === "/verify-turnstile") {
+      if (path === "/turnstile-verify") {
         return new Response("Turnstile verified", {
           status: 200,
           headers: corsHeaders()
