@@ -1,14 +1,3 @@
-/*
- * Copyright 2025 Adobe. All rights reserved.
- * This file is licensed to you under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. You may obtain a copy
- * of the License at http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under
- * the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
- * OF ANY KIND, either express or implied. See the License for the specific language
- * governing permissions and limitations under the License.
- */
 export default {
   async fetch(request, env) {
     const { SLACK_BOT_KEY, SLACK_USER_KEY, TURNSTILE_SECRET } = env;
@@ -20,7 +9,8 @@ export default {
     }
 
     let turnstile_token = null;
-    if (request.method === "POST" && path === "/turnstile-verify") {
+
+    if (request.method === "POST") {
       const contentType = request.headers.get("Content-Type") || "";
       if (contentType.includes("application/json")) {
         try {
@@ -33,7 +23,7 @@ export default {
         return new Response("Unsupported Content-Type", { status: 400, headers: corsHeaders() });
       }
 
-      // Turnstile verification
+      // Verify Turnstile token
       const ip = request.headers.get("CF-Connecting-IP");
       const formData = new FormData();
       formData.append("secret", TURNSTILE_SECRET);
@@ -46,26 +36,19 @@ export default {
       });
 
       const verifyData = await verifyRes.json();
-      if ( verifyData && verifyData.success) {
+      if (!verifyData.success) {
+        return new Response("Turnstile verification failed", { status: 401, headers: corsHeaders() });
+      }
+
+      // ✅ New endpoint
+      if (path === "/verify-turnstile") {
         return new Response("Turnstile verified", {
           status: 200,
           headers: corsHeaders()
         });
       }
-
-      return new Response("Turnstile verification failed", { status: 401, headers: corsHeaders() });
     }
 
-
-
-    /*
-    if (originHeader && !originHeader.includes(allowedOrigin)) {
-      return new Response("Forbidden", {
-        status: 403,
-        headers: corsHeaders()
-      });
-    }
-*/
     if (path === "/slack/channels") {
       const channelName = (requestUrl.searchParams.get("channelName") || "aem-").replace(/\*/g, "");
       const description = (requestUrl.searchParams.get("description") || "Edge Delivery").replace(/\*/g, "");
@@ -74,30 +57,21 @@ export default {
     } else if (path === "/slack/messageStats") {
       const channelId = requestUrl.searchParams.get("channelId");
       if (!channelId) {
-        return new Response("Bad Request: Missing channelId", {
-          status: 400,
-          headers: corsHeaders()
-        });
+        return new Response("Bad Request: Missing channelId", { status: 400, headers: corsHeaders() });
       }
       return handleMessageStats(SLACK_USER_KEY, channelId);
     } else if (path === "/slack/members") {
       const channelId = requestUrl.searchParams.get("channelId");
       if (!channelId) {
-        return new Response("Bad Request: Missing channelId", {
-          status: 400,
-          headers: corsHeaders()
-        });
+        return new Response("Bad Request: Missing channelId", { status: 400, headers: corsHeaders() });
       }
       return handleMembers(SLACK_BOT_KEY, channelId);
     } else if (path === "/slack/user/info") {
       const userId = requestUrl.searchParams.get("userId");
       if (!userId) {
-        return new Response("Bad Request: Missing userId", {
-          status: 400,
-          headers: corsHeaders()
-        });
+        return new Response("Bad Request: Missing userId", { status: 400, headers: corsHeaders() });
       }
-      return handleUserInfo(SLACK_BOT_KEY,userId);
+      return handleUserInfo(SLACK_BOT_KEY, userId);
     } else {
       return new Response("Not Found", {
         status: 404,
@@ -132,14 +106,13 @@ async function handleChannels(token, channelName, description) {
 
     const data = await handleApiResponse(response);
     const filteredChannels = data.channels.filter(ch =>
-        (!channelName || ch.name.includes(channelName) &&
-            (!description || ch.purpose?.value?.includes(description))
-        ));
+        (!channelName || ch.name.includes(channelName)) &&
+        (!description || ch.purpose?.value?.includes(description))
+    );
     allChannels.push(...filteredChannels);
     cursor = data.response_metadata?.next_cursor || null;
   } while (cursor);
 
-  console.log("Total channels found:", allChannels.length);
   return jsonResponse(allChannels);
 }
 
@@ -162,18 +135,14 @@ async function handleMessageStats(token, channelId) {
   const data = await response.json();
 
   const humanMessages = data.messages.filter(isHumanMessage);
-
-  // Sort all messages by timestamp in ascending order
   humanMessages.sort((a, b) => parseFloat(a.ts) - parseFloat(b.ts));
+  const recentMessages = humanMessages.filter(m => parseFloat(m.ts) >= thirtyDaysAgo);
 
-  // Filter messages that are 30 days old or newer
-  const recentMessages = humanMessages.filter(message => parseFloat(message.ts) >= thirtyDaysAgo);
-
-  const recentMessageCount = recentMessages.length;
-  const lastMessageTimestamp = humanMessages.length > 0 ? humanMessages[humanMessages.length - 1].ts : null;
-  const totalMessages = humanMessages.length;
-
-  return jsonResponse({ totalMessages, recentMessageCount, lastMessageTimestamp });
+  return jsonResponse({
+    totalMessages: humanMessages.length,
+    recentMessageCount: recentMessages.length,
+    lastMessageTimestamp: humanMessages.at(-1)?.ts || null
+  });
 }
 
 async function handleMembers(token, channelId) {
