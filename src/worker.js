@@ -20,7 +20,7 @@ export default {
     }
 
     let turnstile_token = null;
-    if (request.method === "POST") {
+    if (request.method === "POST" && path === "/turnstile-verify") {
       const contentType = request.headers.get("Content-Type") || "";
       if (contentType.includes("application/json")) {
         try {
@@ -46,9 +46,14 @@ export default {
       });
 
       const verifyData = await verifyRes.json();
-      if (!verifyData.success) {
-        return new Response("Turnstile verification failed", { status: 401, headers: corsHeaders() });
+      if ( verifyData && verifyData.success) {
+        return new Response("Turnstile verified", {
+          status: 200,
+          headers: corsHeaders()
+        });
       }
+
+      return new Response("Turnstile verification failed", { status: 401, headers: corsHeaders() });
     }
 
 
