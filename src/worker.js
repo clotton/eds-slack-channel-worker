@@ -12,39 +12,43 @@
 export default {
   async fetch(request, env) {
     const { SLACK_BOT_KEY, SLACK_USER_KEY, TURNSTILE_SECRET } = env;
-    const allowedOrigin = "eds-channel-tracker--aemdemos.aem";
-    const originHeader = request.headers.get("Origin");
     const requestUrl = new URL(request.url);
     const path = requestUrl.pathname;
 
-    if (request.method === 'OPTIONS') {
-      return new Response(null, {
-        status: 204,
-        headers: corsHeaders()
-      });
+    if (request.method === "OPTIONS") {
+      return new Response(null, { status: 204, headers: corsHeaders() });
     }
 
-    const { turnstile_token } = await request.json();
-    const ip = request.headers.get("CF-Connecting-IP");
+    let turnstile_token = null;
+    if (request.method === "POST") {
+      const contentType = request.headers.get("Content-Type") || "";
+      if (contentType.includes("application/json")) {
+        try {
+          const body = await request.json();
+          turnstile_token = body.turnstile_token;
+        } catch {
+          return new Response("Invalid JSON body", { status: 400, headers: corsHeaders() });
+        }
+      } else {
+        return new Response("Unsupported Content-Type", { status: 400, headers: corsHeaders() });
+      }
 
-    const formData = new FormData();
-    formData.append("secret", TURNSTILE_SECRET);
-    formData.append("response", turnstile_token);
-    formData.append("remoteip", ip);
+      // Turnstile verification
+      const ip = request.headers.get("CF-Connecting-IP");
+      const formData = new FormData();
+      formData.append("secret", TURNSTILE_SECRET);
+      formData.append("response", turnstile_token);
+      if (ip) formData.append("remoteip", ip);
 
-    const url = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
-    const result = await fetch(url, {
-      method: "POST",
-      body: formData
-    });
+      const verifyRes = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+        method: "POST",
+        body: formData
+      });
 
-    const data = await result.json();
-    if (!data.success) {
-      return new Response("Unauthorized",
-          {
-            status: 401,
-            headers: corsHeaders()
-          });
+      const verifyData = await verifyRes.json();
+      if (!verifyData.success) {
+        return new Response("Turnstile verification failed", { status: 401, headers: corsHeaders() });
+      }
     }
 
 
