@@ -77,10 +77,11 @@ async function handleChannels(token, channelName, description) {
     });
 
     const data = await handleApiResponse(response);
-    const filteredChannels = data.channels.filter(ch =>
-        (!channelName || ch.name.includes(channelName)) &&
-        (!description || ch.purpose?.value?.includes(description))
-    );
+    const filteredChannels = data.channels.filter((ch) => {
+      const matchesName = channelName ? ch.name.includes(channelName) : true;
+      const matchesDescription = description ? (ch.purpose?.value || '').includes(description) : true;
+      return matchesName && matchesDescription;
+    });
     allChannels.push(...filteredChannels);
     cursor = data.response_metadata?.next_cursor || null;
   } while (cursor);
