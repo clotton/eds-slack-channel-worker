@@ -18,8 +18,12 @@ export default {
     }
 
     if (path === "/slack/channels") {
-      const channelName = (requestUrl.searchParams.get("channelName") || "aem-").replace(/\*/g, "");
-      const description = (requestUrl.searchParams.get("description") || "Edge Delivery").replace(/\*/g, "");
+      const rawChannelName = requestUrl.searchParams.get("channelName")?.trim();
+      const rawDescription = requestUrl.searchParams.get("description")?.trim();
+
+      const channelName = rawChannelName && rawChannelName !== '*' ? rawChannelName.replace(/\*/g, '') : undefined;
+      const description = rawDescription && rawDescription !== '*' ? rawDescription.replace(/\*/g, '') : undefined;
+
 
       return handleChannels(SLACK_BOT_KEY, channelName, description);
     } else if (path === "/slack/messageStats") {
