@@ -78,8 +78,8 @@ async function handleChannels(token, channelName, description) {
 
     const data = await handleApiResponse(response);
     const filteredChannels = data.channels.filter((ch) => {
-      const matchesName = channelName ? ch.name.includes(channelName) : true;
-      const matchesDescription = description ? (ch.purpose?.value || '').includes(description) : true;
+      const matchesName = channelName ? ch.name.toLowerCase().includes(channelName.toLowerCase()) : true;
+      const matchesDescription = description ? (ch.purpose?.value || '').toLowerCase().includes(description.toLowerCase()) : true;
       return matchesName && matchesDescription;
     });
     allChannels.push(...filteredChannels);
