@@ -1,13 +1,13 @@
 
 # EDS Channel Tracker Worker 
 
---- 
+
 
 ## 🛠 A Cloudflare Worker: Slack & Teams API Proxy
 
 This Cloudflare Worker acts as a backend API layer for Slack (and soon Microsoft Teams), handling authenticated requests and simplifying frontend integration.
 
----
+
 
 ## 📁 Project Structure
 
@@ -23,7 +23,7 @@ worker/
 │   ├── response.js       # jsonResponse, errorResponse, API error handling
 │   └── common.js         # Utility functions (e.g. isHumanMessage)
 ```
----
+
 
 ## 📦 Current API Endpoints
 
@@ -38,7 +38,7 @@ worker/
 
 - _To be added via `api/teams.js`_
 
----
+
 
 ## ⚙️ Environment Variables
 
