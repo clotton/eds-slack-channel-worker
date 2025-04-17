@@ -20,10 +20,3 @@ export function errorResponse(error) {
     });
 }
 
-export async function handleApiResponse(response) {
-    const data = await response.json();
-    if (!response.ok || !data.ok) {
-        throw new Error(data.error || response.statusText);
-    }
-    return data;
-}

@@ -1,4 +1,4 @@
-import { jsonResponse, handleApiResponse } from '../utils/response.js';
+import { jsonResponse } from '../utils/response.js';
 import { isHumanMessage } from '../utils/common.js';
 
 export async function handleChannels(token, rawChannelName, rawDescription) {
@@ -18,7 +18,11 @@ export async function handleChannels(token, rawChannelName, rawDescription) {
             }
         });
 
-        const data = await handleApiResponse(response);
+        if (!response.ok) {
+            return response;
+        }
+
+        const data = await response.json();
         const filteredChannels = data.channels.filter((ch) => {
             const matchesName = channelName ? ch.name.toLowerCase().includes(channelName.toLowerCase()) : true;
             const matchesDescription = description ? (ch.purpose?.value || '').toLowerCase().includes(description.toLowerCase()) : true;
@@ -43,6 +47,10 @@ export async function handleMessageStats(token, channelId) {
             "Content-Type": "application/json"
         }
     });
+
+    if (!response.ok) {
+        return response;
+    }
 
     const data = await response.json();
     const humanMessages = data.messages.filter(isHumanMessage);
