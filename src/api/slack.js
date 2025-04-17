@@ -1,4 +1,4 @@
-import { jsonResponse, errorResponse, handleApiResponse } from '../utils/response.js';
+import { jsonResponse, handleApiResponse } from '../utils/response.js';
 import { isHumanMessage } from '../utils/common.js';
 
 export async function handleChannels(token, rawChannelName, rawDescription) {
