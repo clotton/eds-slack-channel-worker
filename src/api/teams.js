@@ -1,3 +1,4 @@
+import {jsonResponse} from "../utils/response";
 
 const getTeam = async (displayName, bearer) => {
     const params = new URLSearchParams({
@@ -59,30 +60,35 @@ const getTeamMembers = async (data) => {
     return null;
 }
 
-const getAllTeams = async (data) => {
-    const headers = {
-        Authorization: `Bearer ${data.bearer}`,
-    };
-
+const getAllTeams = async (bearer) => {
     const url = `https://graph.microsoft.com/v1.0/teams`;
 
-    const res = await fetch(url, {
+    const response = await fetch(url, {
         method: 'GET',
-        headers,
+        headers: {
+            "Authorization": `Bearer ${bearer}`,
+            "Content-Type": "application/json"
+        }
     });
 
-    const json = await res.json();
+    if (!response.ok) {
+        return jsonResponse({ error: "Failed to fetch teams" }, 500);
+    }
+
+    const json = await response.json();
+
     if (json && json.value) {
-        return json.value.filter(o => o.visibility !== 'private').map(o => {
+        const allTeams = json.value.filter(o => o.visibility !== 'private').map(o => {
             return {
                 id: o.id,
                 displayName: o.displayName,
                 description: o.description,
             };
         });
+        return jsonResponse(allTeams);
     }
 
-    return null;
+    return jsonResponse([]);
 }
 
 const getChannels = async (teamId, bearer) => {

@@ -1,6 +1,7 @@
 import * as slack from './slack.js';
 import * as teams from './teams.js';
-import { errorResponse } from '../utils/response.js';
+import {errorResponse} from '../utils/response.js';
+import{authenticate} from '../utils/auth.js';
 
 export async function router(request, env) {
     const url = new URL(request.url);
@@ -8,7 +9,7 @@ export async function router(request, env) {
     const search = url.searchParams;
     const segments = path.split('/').filter(Boolean);
 
-    const { SLACK_BOT_KEY, SLACK_USER_KEY, TEAMS_API_KEY } = env;
+    const { SLACK_BOT_KEY, SLACK_USER_KEY } = env;
 
     // Slack routes
     if (segments[0] === 'slack') {
@@ -34,6 +35,10 @@ export async function router(request, env) {
         }
     }
 
+    // Teams authentication
+    const bearer = await authenticate(env);
+    if (!bearer) return errorResponse("Authentication failed");
+
     // Teams routes
     if (segments[0] === 'teams') {
         switch (segments[1]) {
@@ -55,7 +60,7 @@ export async function router(request, env) {
                 return teams.getChannelActivityStats(teamId, channelId, env.TEAMS_AUTH_TOKEN);
             }
             case 'allTeams': {
-                return teams.getAllTeams({ bearer: env.TEAMS_AUTH_TOKEN });
+                return teams.getAllTeams(bearer);
             }
         }
     }
