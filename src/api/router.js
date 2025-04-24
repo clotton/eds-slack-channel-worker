@@ -44,15 +44,15 @@ export async function router(request, env) {
                 return teams.getTeamMembers({ id: teamId, name, bearer:bearer});
             }
             case 'channels': {
-                const teamId = search.get("teamId");
+                const teamId = segments[3];
                 if (!teamId) return errorResponse("Missing teamId");
-                return teams.getChannels({ id: teamId, bearer:bearer});
+                return teams.getChannels( teamId, await authenticate(env));
             }
             case 'channelStats': {
                 const teamId = search.get("teamId");
                 const channelId = search.get("channelId");
                 if (!teamId || !channelId) return errorResponse("Missing teamId or channelId");
-                return teams.getChannelActivityStats({ id: teamId, channelId:           channelId, bearer:bearer});
+                return teams.getChannelActivityStats({ id: teamId, channelId:channelId, bearer:bearer});
             }
             case 'allTeams': {
                 return teams.getAllTeams(await authenticate(env));
