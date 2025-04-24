@@ -49,7 +49,7 @@ const getChannels = async (teamId, bearer) => {
     if (!response.ok) return response;
 
     const data = await response.json();
-    return jsonResponse(data.value || []);
+    return jsonResponse(data || []);
 }
 
 const getTeamMembers = async (data) => {
@@ -125,7 +125,7 @@ const getChannelActivityStats = async (teamId, channelId, bearer) => {
 export {
     getAllTeams,
     getTeam,
-    getTeamMembers,
     getChannels,
+    getTeamMembers,
     getChannelActivityStats,
 }
