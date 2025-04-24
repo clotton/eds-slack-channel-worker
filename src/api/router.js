@@ -34,11 +34,6 @@ export async function router(request, env) {
                 }
         }
     }
-
-    // Teams authentication
-    const bearer = await authenticate(env);
-    if (!bearer) return errorResponse("Authentication failed");
-
     // Teams routes
     if (segments[0] === 'teams') {
         switch (segments[1]) {
@@ -46,21 +41,26 @@ export async function router(request, env) {
                 const teamId = search.get("teamId");
                 const name = search.get("teamName");
                 if (!teamId && !name) return errorResponse("Missing teamId or teamName");
-                return teams.getTeamMembers({ id: teamId, name, bearer: env.TEAMS_AUTH_TOKEN });
+                return teams.getTeamMembers({ id: teamId, name, bearer:bearer});
             }
             case 'channels': {
                 const teamId = search.get("teamId");
                 if (!teamId) return errorResponse("Missing teamId");
-                return teams.getChannels(teamId, env.TEAMS_AUTH_TOKEN);
+                return teams.getChannels({ id: teamId, bearer:bearer});
             }
             case 'channelStats': {
                 const teamId = search.get("teamId");
                 const channelId = search.get("channelId");
                 if (!teamId || !channelId) return errorResponse("Missing teamId or channelId");
-                return teams.getChannelActivityStats(teamId, channelId, env.TEAMS_AUTH_TOKEN);
+                return teams.getChannelActivityStats({ id: teamId, channelId:           channelId, bearer:bearer});
             }
             case 'allTeams': {
-                return teams.getAllTeams(bearer);
+                return teams.getAllTeams(await authenticate(env));
+            }
+            case 'team': {
+                const teamId = segments[2];
+                if (!teamId) return errorResponse("Missing teamId");
+                 return teams.getTeam(teamId, await authenticate(env));
             }
         }
     }

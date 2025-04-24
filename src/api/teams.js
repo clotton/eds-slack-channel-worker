@@ -1,44 +1,65 @@
 import {jsonResponse} from "../utils/response";
+const createHeaders = (bearer, consistencyLevel = 'eventual') => ({
+    Authorization: `Bearer ${bearer}`,
+    ConsistencyLevel: consistencyLevel,
+    "Content-Type": "application/json",
+});
 
-const getTeam = async (displayName, bearer) => {
-    const params = new URLSearchParams({
-        '$filter': `(displayName eq '${displayName}')`,
-        '$select': 'id,displayName,createdDateTime',
+const getAllTeams = async (bearer) => {
+    const headers = createHeaders(bearer);
+    const url = `https://graph.microsoft.com/v1.0/teams`;
+
+    const response = await fetch(url, { method: 'GET', headers });
+    if (!response.ok) return response;
+
+    const json = await response.json();
+    const allTeams = json?.value?.filter(o => o.visibility !== 'private').map(o => ({
+        id: o.id,
+        displayName: o.displayName,
+        description: o.description,
+    })) || [];
+
+    return jsonResponse(allTeams);
+};
+
+const getTeam = async (teamId, bearer ) => {
+    const headers = createHeaders(bearer);
+    const url = `https://graph.microsoft.com/v1.0/teams/${teamId}`;
+    const response = await fetch(url, { method: 'GET', headers });
+    if (!response.ok) return response;
+
+    const { id, createdDateTime, webUrl, summary } = await response.json();
+    return jsonResponse({
+        id,
+        createdDateTime,
+        webUrl,
+        ownersCount: summary?.ownersCount|| 0,
+        membersCount: summary?.membersCount|| 0,
+        guestsCount: summary?.guestsCount|| 0,
     });
+};
 
-    const headers = {
-        ConsistencyLevel: 'eventual',
-        Authorization: `Bearer ${bearer}`,
-    };
-
-    const url = `https://graph.microsoft.com/v1.0/groups?${params}`
-
-    const res = await fetch(url, {
+const getChannels = async (teamId, bearer) => {
+    const headers = createHeaders(bearer);
+    const url = `https://graph.microsoft.com/v1.0/teams/${teamId}/channels`;
+    const response = await fetch(url, {
         method: 'GET',
         headers,
     });
+    if (!response.ok) return response;
 
-    const json = await res.json();
-    if (json.value && json.value.length > 0) {
-        return json.value[0];
-    }
-
-    return null;
+    const data = await response.json();
+    return jsonResponse(data.value || []);
 }
 
 const getTeamMembers = async (data) => {
     let { id, name, bearer } = data;
     if (!id && name) {
-        const team = await getTeam(name, data.bearer);
+        const team = await getTeam(id, bearer);
         if (!team) return null;
         id = team.id;
     }
-
-    const headers = {
-        ConsistencyLevel: 'eventual',
-        Authorization: `Bearer ${bearer}`,
-    };
-
+    const headers = createHeaders(bearer);
     const url = `https://graph.microsoft.com/v1.0/teams/${id}/members`
 
     const res = await fetch(url, {
@@ -57,58 +78,7 @@ const getTeamMembers = async (data) => {
         });
     }
 
-    return null;
-}
-
-const getAllTeams = async (bearer) => {
-    const url = `https://graph.microsoft.com/v1.0/teams`;
-
-    const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-            "Authorization": `Bearer ${bearer}`,
-            "Content-Type": "application/json"
-        }
-    });
-
-    if (!response.ok) {
-        return jsonResponse({ error: "Failed to fetch teams" }, 500);
-    }
-
-    const json = await response.json();
-
-    if (json && json.value) {
-        const allTeams = json.value.filter(o => o.visibility !== 'private').map(o => {
-            return {
-                id: o.id,
-                displayName: o.displayName,
-                description: o.description,
-            };
-        });
-        return jsonResponse(allTeams);
-    }
-
     return jsonResponse([]);
-}
-
-const getChannels = async (teamId, bearer) => {
-    const headers = {
-        Authorization: `Bearer ${bearer}`,
-    };
-
-    const url = `https://graph.microsoft.com/v1.0/teams/${teamId}/channels`;
-
-    const res = await fetch(url, {
-        method: 'GET',
-        headers,
-    });
-
-    const json = await res.json();
-    if (json && json.value) {
-        return json.value;
-    }
-
-    return null;
 }
 
 const getChannelActivityStats = async (teamId, channelId, bearer) => {
@@ -153,9 +123,9 @@ const getChannelActivityStats = async (teamId, channelId, bearer) => {
 }
 
 export {
+    getAllTeams,
     getTeam,
     getTeamMembers,
-    getAllTeams,
     getChannels,
     getChannelActivityStats,
 }
