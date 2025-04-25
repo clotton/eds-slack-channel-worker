@@ -52,6 +52,48 @@ const getChannels = async (teamId, bearer) => {
     return jsonResponse(data || []);
 }
 
+const getChannelActivityStats = async (teamId, channelId, bearer) => {
+    const headers = createHeaders(bearer);
+    const url = `https://graph.microsoft.com/v1.0/teams/${teamId}/channels/${channelId}/messages?$top=50&$expand=replies`;
+    const response = await fetch(url, {
+        method: 'GET',
+        headers,
+    });
+
+    if (!response.ok) return response;
+
+    const json = await response.json();
+    if (json && json.value) {
+        let lastActivity = null;
+        let total = 0;
+        json.value
+          .filter(o => o.messageType === 'message' && !o.deletedDateTime)
+          .forEach(o => {
+              const messageDate = new Date(o.lastModifiedDateTime);
+              total++;
+              if (!lastActivity || messageDate > lastActivity) {
+                  lastActivity = messageDate;
+              }
+              if (o.replies) {
+                  o.replies.forEach(r => {
+                      const replyDate = new Date(r.lastModifiedDateTime);
+                      total++;
+                      if (!lastActivity || replyDate > lastActivity) {
+                          lastActivity = replyDate;
+                      }
+                  });
+              }
+          });
+
+        return jsonResponse({
+            lastActivity: lastActivity ? lastActivity.toISOString() : null,
+            totalMessages: total,
+        });
+    }
+
+    return jsonResponse({ lastActivity: null, totalMessages: 0 });
+};
+
 const getTeamMembers = async (data) => {
     let { id, name, bearer } = data;
     if (!id && name) {
@@ -81,46 +123,6 @@ const getTeamMembers = async (data) => {
     return jsonResponse([]);
 }
 
-const getChannelActivityStats = async (teamId, channelId, bearer) => {
-    const headers = {
-        Authorization: `Bearer ${bearer}`,
-    };
-
-    const url = `https://graph.microsoft.com/v1.0/teams/${teamId}/channels/${channelId}/messages?$top=50&$expand=replies`;
-
-    const res = await fetch(url, {
-        method: 'GET',
-        headers,
-    });
-
-    const json = await res.json();
-    if (json && json.value) {
-        let lastActivity = null;
-        let total = 0;
-        json.value.filter(o => o.messageType === 'message' && !o.deletedDateTime).map(o => {
-            const d = new Date(o.lastModifiedDateTime);
-            total++;
-            if (d > lastActivity) {
-                lastActivity = d;
-            }
-            if (o.replies) {
-                o.replies.forEach(r => {
-                    const rd = new Date(r.lastModifiedDateTime);
-                    total++;
-                    if (rd > lastActivity) {
-                        lastActivity = rd;
-                    }
-                });
-            }
-        });
-        return  {
-            lastActivity,
-            total,
-        };
-    }
-
-    return null;
-}
 
 export {
     getAllTeams,

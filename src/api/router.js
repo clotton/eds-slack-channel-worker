@@ -36,6 +36,8 @@ export async function router(request, env) {
     }
     // Teams routes
     if (segments[0] === 'teams') {
+        const bearer = await authenticate(env);
+
         switch (segments[1]) {
             case 'teamMembers': {
                 const teamId = search.get("teamId");
@@ -43,24 +45,24 @@ export async function router(request, env) {
                 if (!teamId && !name) return errorResponse("Missing teamId or teamName");
                 return teams.getTeamMembers({ id: teamId, name, bearer:bearer});
             }
-            case 'channels': {
-                const teamId = segments[3];
+            case 'allTeams': {
+                return teams.getAllTeams(bearer);
+            }
+            case 'team': {
+                const teamId = segments[2];
                 if (!teamId) return errorResponse("Missing teamId");
-                return teams.getChannels( teamId, await authenticate(env));
+                 return teams.getTeam(teamId, bearer);
+            }
+            case 'channels': {
+                const teamId = search.get("teamId");
+                if (!teamId) return errorResponse("Missing teamId");
+                return teams.getChannels(teamId, bearer);
             }
             case 'channelStats': {
                 const teamId = search.get("teamId");
                 const channelId = search.get("channelId");
                 if (!teamId || !channelId) return errorResponse("Missing teamId or channelId");
-                return teams.getChannelActivityStats({ id: teamId, channelId:channelId, bearer:bearer});
-            }
-            case 'allTeams': {
-                return teams.getAllTeams(await authenticate(env));
-            }
-            case 'team': {
-                const teamId = segments[2];
-                if (!teamId) return errorResponse("Missing teamId");
-                 return teams.getTeam(teamId, await authenticate(env));
+                return teams.getChannelActivityStats(teamId, channelId, bearer);
             }
         }
     }
