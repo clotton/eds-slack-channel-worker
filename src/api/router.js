@@ -49,9 +49,9 @@ export async function router(request, env) {
                 return teams.getAllTeams(bearer);
             }
             case 'team': {
-                const teamId = segments[2];
+                const teamId =  search.get("teamId");
                 if (!teamId) return errorResponse("Missing teamId");
-                 return teams.getTeam(teamId, bearer);
+                return teams.getTeam(teamId, bearer);
             }
             case 'channels': {
                 const teamId = search.get("teamId");
