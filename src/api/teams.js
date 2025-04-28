@@ -66,11 +66,18 @@ const getChannelActivityStats = async (teamId, channelId, bearer) => {
     if (json && json.value) {
         let lastActivity = null;
         let total = 0;
+        let recentMessageCount = 0;
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
         json.value
           .filter(o => o.messageType === 'message' && !o.deletedDateTime)
           .forEach(o => {
               const messageDate = new Date(o.lastModifiedDateTime);
               total++;
+              if (messageDate >= thirtyDaysAgo) {
+                  recentMessageCount++;
+              }
               if (!lastActivity || messageDate > lastActivity) {
                   lastActivity = messageDate;
               }
@@ -88,10 +95,11 @@ const getChannelActivityStats = async (teamId, channelId, bearer) => {
         return jsonResponse({
             lastActivity: lastActivity ? lastActivity.toISOString() : null,
             totalMessages: total,
+            recentMessageCount,
         });
     }
 
-    return jsonResponse({ lastActivity: null, totalMessages: 0 });
+    return jsonResponse({ lastActivity: null, totalMessages: 0, recentMessageCount: 0  });
 };
 
 const getTeamMembers = async (data) => {
