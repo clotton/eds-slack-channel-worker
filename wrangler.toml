@@ -1,5 +1,5 @@
 name = "eds-channels-tracker-worker"
 main = "src/main.js"
-compatibility_date = "2025-03-13"
+compatibility_date = "2025-04-28"
 workers_dev = true
 preview_urls = false
