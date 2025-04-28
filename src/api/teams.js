@@ -5,7 +5,7 @@ const createHeaders = (bearer, consistencyLevel = 'eventual') => ({
     "Content-Type": "application/json",
 });
 
-const getAllTeams = async (bearer) => {
+const getAllTeams = async (bearer, nameFilter = '', descriptionFilter = '') => {
     const headers = createHeaders(bearer);
     const url = `https://graph.microsoft.com/v1.0/teams`;
 
@@ -13,11 +13,20 @@ const getAllTeams = async (bearer) => {
     if (!response.ok) return response;
 
     const json = await response.json();
-    const allTeams = json?.value?.filter(o => o.visibility !== 'private').map(o => ({
-        id: o.id,
-        displayName: o.displayName,
-        description: o.description,
-    })) || [];
+
+    // Only keep public teams
+    let allTeams = json?.value?.filter(o => o.visibility !== 'private');
+
+    // Apply filters if provided
+    allTeams = allTeams.filter(team => {
+        const matchesName = nameFilter
+            ? team.displayName?.toLowerCase().includes(nameFilter.toLowerCase())
+            : true;
+        const matchesDescription = descriptionFilter
+            ? team.description?.toLowerCase().includes(descriptionFilter.toLowerCase())
+            : true;
+        return matchesName && matchesDescription;
+    });
 
     return jsonResponse(allTeams);
 };

@@ -46,7 +46,9 @@ export async function router(request, env) {
                 return teams.getTeamMembers({ id: teamId, name, bearer:bearer});
             }
             case 'allTeams': {
-                return teams.getAllTeams(bearer);
+                const nameFilter = search.get("nameFilter");
+                const descriptionFilter = search.get("descriptionFilter");
+                return teams.getAllTeams(bearer, nameFilter, descriptionFilter);
             }
             case 'team': {
                 const teamId =  search.get("teamId");
