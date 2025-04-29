@@ -1,4 +1,4 @@
-name = "eds-channels-tracker-worker"
+name = "eds-teams-channel-worker"
 main = "src/main.js"
 compatibility_date = "2025-04-28"
 workers_dev = true
