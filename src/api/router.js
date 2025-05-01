@@ -1,7 +1,5 @@
 import * as slack from './slack.js';
-import * as teams from './teams.js';
 import {errorResponse} from '../utils/response.js';
-import{authenticate} from '../utils/auth.js';
 
 export async function router(request, env) {
     const url = new URL(request.url);
@@ -32,40 +30,6 @@ export async function router(request, env) {
                     if (!userId) return errorResponse("Missing userId");
                     return slack.handleUserInfo(SLACK_BOT_KEY, userId);
                 }
-        }
-    }
-    // Teams routes
-    if (segments[0] === 'teams') {
-        const bearer = await authenticate(env);
-
-        switch (segments[1]) {
-            case 'teamMembers': {
-                const teamId = search.get("teamId");
-                const name = search.get("teamName");
-                if (!teamId && !name) return errorResponse("Missing teamId or teamName");
-                return teams.getTeamMembers({ id: teamId, name, bearer:bearer});
-            }
-            case 'allTeams': {
-                const nameFilter = search.get("nameFilter");
-                const descriptionFilter = search.get("descriptionFilter");
-                return teams.getAllTeams(bearer, nameFilter, descriptionFilter);
-            }
-            case 'team': {
-                const teamId =  search.get("teamId");
-                if (!teamId) return errorResponse("Missing teamId");
-                return teams.getTeam(teamId, bearer);
-            }
-            case 'channels': {
-                const teamId = search.get("teamId");
-                if (!teamId) return errorResponse("Missing teamId");
-                return teams.getChannels(teamId, bearer);
-            }
-            case 'channelStats': {
-                const teamId = search.get("teamId");
-                const channelId = search.get("channelId");
-                if (!teamId || !channelId) return errorResponse("Missing teamId or channelId");
-                return teams.getChannelActivityStats(teamId, channelId, bearer);
-            }
         }
     }
 

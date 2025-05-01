@@ -17,7 +17,6 @@ worker/
 ├── api/
 │   ├── router.js         # Routes incoming requests to Slack or Teams handlers
 │   ├── slack.js          # Slack-specific API logic (channels, messages, users)
-│   ├── teams.js          # Teams API handlers (stubbed, ready for expansion)
 ├── utils/
 │   ├── cors.js           # CORS response headers
 │   ├── response.js       # jsonResponse, errorResponse, API error handling
@@ -33,11 +32,6 @@ worker/
 - `GET /slack/messageStats?channelId=`
 - `GET /slack/members?channelId=`
 - `GET /slack/user/info?userId=`
-
-### Microsoft Teams
-
-- _To be added via `api/teams.js`_
-
 
 
 ## ⚙️ Environment Variables
