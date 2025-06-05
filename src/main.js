@@ -33,14 +33,12 @@ export default {
   },
 
   async queue(batch, env, ctx) {
-    const chunkSize = 1;
-    for (let i = 0; i < batch.messages.length; i += chunkSize) {
-      const chunk = batch.messages.slice(i, i + chunkSize);
-      ctx.waitUntil(Promise.all(chunk.map(msg =>
-          processSlackStats(msg.body.channelId, env)
-      )));
+    for (const msg of batch.messages) {
+      const { channelId } = typeof msg.body === "string" ? JSON.parse(msg.body) : msg.body;
+      await processSlackStats(channelId, env);
     }
   },
+
   async fetch(request, env) {
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 204, headers: corsHeaders() });
