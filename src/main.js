@@ -6,7 +6,7 @@ async function handleCronJob(env) {
   const res = await slack.handleChannels(env.SLACK_BOT_KEY, '', '');
   const channels = await res.json();
   for (const channel of channels) {
-    await env.SLACK_STATS_QUEUE.send({
+    env.SLACK_STATS_QUEUE.send({
       channelId: channel.id
     });
   }
