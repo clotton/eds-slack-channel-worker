@@ -36,7 +36,7 @@ export async function handleChannels(token, rawChannelName, rawDescription) {
     return jsonResponse(allChannels);
 }
 
-export async function handleMessageStatsRequest(channelId) {
+export async function handleMessageStatsRequest(channelId, env) {
 
     if (!channelId) {
         return new Response('Missing channelId', { status: 400 });

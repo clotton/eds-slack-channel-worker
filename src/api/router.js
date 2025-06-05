@@ -17,7 +17,7 @@ export async function router(request, env) {
             case 'messageStats': {
                 const channelId = search.get("channelId");
                 if (!channelId) return errorResponse("Missing channelId");
-                return slack.handleMessageStatsRequest(channelId);
+                return slack.handleMessageStatsRequest(channelId, env);
             }
             case 'members': {
                 const channelId = search.get("channelId");
