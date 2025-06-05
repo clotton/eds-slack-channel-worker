@@ -36,6 +36,26 @@ export async function handleChannels(token, rawChannelName, rawDescription) {
     return jsonResponse(allChannels);
 }
 
+export async function handleMessageStatsRequest(channelId) {
+
+    if (!channelId) {
+        return new Response('Missing channelId', { status: 400 });
+    }
+
+    try {
+        const raw = await env.SLACK_KV.get(channelId);
+        const messageStats = raw ? JSON.parse(raw) : null;
+        console.log(`Fetched stats from KV for channel ${channelId}:`, messageStats);
+        return jsonResponse(messageStats);
+    } catch (err) {
+        console.error(`Error fetching stats for channel ${channelId}:`, err);
+        return new Response(JSON.stringify({ error: true }), {
+            headers: { 'Content-Type': 'application/json' },
+            status: 500,
+        });
+    }
+}
+
 export async function getMessageStats(token, channelId) {
     const url = `https://slack.com/api/conversations.history?channel=${channelId}&limit=1000`;
     const thirtyDaysAgo = (Date.now() / 1000) - (30 * 24 * 60 * 60);

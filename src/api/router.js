@@ -1,5 +1,5 @@
 import * as slack from './slack.js';
-import {errorResponse} from '../utils/response.js';
+import { errorResponse } from '../utils/response.js';
 
 export async function router(request, env) {
     const url = new URL(request.url);
@@ -17,7 +17,7 @@ export async function router(request, env) {
             case 'messageStats': {
                 const channelId = search.get("channelId");
                 if (!channelId) return errorResponse("Missing channelId");
-                return slack.getMessageStats(SLACK_USER_KEY, channelId);
+                return slack.handleMessageStatsRequest(channelId);
             }
             case 'members': {
                 const channelId = search.get("channelId");
