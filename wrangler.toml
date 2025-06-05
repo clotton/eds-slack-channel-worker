@@ -10,7 +10,7 @@ id = "5de564f59467495eac69245058ddb9b0"
 
 
 [triggers]
-crons = ["*/15 * * * *"]
+crons = ["*/10 * * * *"]
 
 [[queues.producers]]
 queue = "slack-stats-queue"
