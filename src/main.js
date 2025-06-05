@@ -3,7 +3,7 @@ import { corsHeaders } from './utils/cors.js';
 import * as slack from "./api/slack";
 
 async function handleCronJob(env) {
-  const res = await slack.handleChannels(env.SLACK_BOT_KEY, "aem-", "Edge Delivery");
+  const res = await slack.handleChannels(env.SLACK_BOT_KEY, '', '');
   const channels = await res.json();
   for (const channel of channels) {
     await env.SLACK_STATS_QUEUE.send({
