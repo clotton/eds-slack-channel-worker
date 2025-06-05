@@ -13,8 +13,10 @@ async function handleCronJob(env) {
 }
 
 async function processSlackStats(channelId, env) {
-  const stats = await slack.getMessageStats(env.SLACK_USER_KEY, channelId);
-  if (!stats) return;
+  const response = await slack.getMessageStats(env.SLACK_USER_KEY, channelId);
+  if (!response.ok) return;
+
+  const stats = await response.json();
 
   const key = channelId;
   const newValue = JSON.stringify(stats);
