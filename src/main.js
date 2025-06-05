@@ -12,7 +12,7 @@ async function handleCronJob(env) {
   }
 }
 
-async function processSlacktats(channelId, env) {
+async function processSlackStats(channelId, env) {
   const stats = await slack.getMessageStats(env.SLACK_USER_KEY, channelId);
   if (!stats) return;
 
