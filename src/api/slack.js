@@ -36,7 +36,7 @@ export async function handleChannels(token, rawChannelName, rawDescription) {
     return jsonResponse(allChannels);
 }
 
-export async function handleMessageStats(token, channelId) {
+export async function getMessageStats(token, channelId) {
     const url = `https://slack.com/api/conversations.history?channel=${channelId}&limit=1000`;
     const thirtyDaysAgo = (Date.now() / 1000) - (30 * 24 * 60 * 60);
 

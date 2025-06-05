@@ -3,3 +3,19 @@ main = "src/main.js"
 compatibility_date = "2025-04-28"
 workers_dev = true
 preview_urls = false
+
+[[kv_namespaces]]
+binding = "SLACK_KV"
+id = "5de564f59467495eac69245058ddb9b0"
+
+
+[triggers]
+crons = ["*/15 * * * *"]
+
+[[queues.producers]]
+queue = "slack-stats-queue"
+binding = "SLACK_STATS_QUEUE"
+
+[[queues.consumers]]
+queue = "slack-stats-queue"
+binding = "SLACK_STATS_QUEUE"
