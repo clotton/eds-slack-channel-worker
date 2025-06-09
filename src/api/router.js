@@ -13,7 +13,7 @@ export async function router(request, env) {
     if (segments[0] === 'slack') {
         switch (segments[1]) {
             case 'channels':
-                return slack.handleChannels(SLACK_BOT_KEY, search.get("channelName"), search.get("description"));
+                return slack.handleChannels(SLACK_BOT_KEY, search.get("searchBy"), search.get("channelName"), search.get("description"), env);
             case 'messageStats': {
                 const channelId = search.get("channelId");
                 if (!channelId) return errorResponse("Missing channelId");

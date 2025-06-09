@@ -1,12 +1,30 @@
 import { jsonResponse } from '../utils/response.js';
 import { isHumanMessage } from '../utils/common.js';
 
-export async function handleChannels(token, rawChannelName, rawDescription) {
+export async function logSearchAttempt({ searchBy, searchName, searchDescription }, env) {
+    const webhookUrl = env.SLACK_WEBHOOK_URL; // Replace with your webhook
+    const message = {
+        text: `👤 *${searchBy}* searched for name: *${searchName}* and description: *${searchDescription}*`,
+    };
+    await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(message),
+    });
+}
+
+export async function handleChannels(token, searchBy, rawChannelName, rawDescription, env) {
     const SLACK_API_URL = "https://slack.com/api/conversations.list?exclude_archived=true&limit=9999";
     let cursor = null, allChannels = [];
 
     const channelName = rawChannelName && rawChannelName !== '*' ? rawChannelName.replace(/\*/g, '') : undefined;
     const description = rawDescription && rawDescription !== '*' ? rawDescription.replace(/\*/g, '') : undefined;
+
+    await logSearchAttempt({
+        searchBy: searchBy, // Ensure this is set in data
+        searchName: channelName,
+        searchDescription: description,
+    }, env);
 
     do {
         const apiUrl = cursor ? `${SLACK_API_URL}&cursor=${cursor}` : SLACK_API_URL;
