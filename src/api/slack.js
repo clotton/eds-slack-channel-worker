@@ -4,7 +4,7 @@ import { isHumanMessage } from '../utils/common.js';
 export async function logSearchAttempt({ searchBy, searchName, searchDescription }, env) {
     const webhookUrl = env.SLACK_WEBHOOK_URL; // Replace with your webhook
     const message = {
-        text: `👤 *${searchBy}* searched for name: *${searchName}* and description: *${searchDescription}*`,
+        text: `👤 *${searchBy}* searched slack for name: *${searchName}* and description: *${searchDescription}*`,
     };
     await fetch(webhookUrl, {
         method: 'POST',
