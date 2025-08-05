@@ -5,6 +5,8 @@ import * as slack from "./api/slack";
 async function handleCronJob(env) {
   const res = await slack.handleChannels(env.SLACK_BOT_KEY, "Message Stats Cron Job", '', '', env);
   const channels = await res.json();
+  console.log(`Found ${channels.length} channels for stats collection`);
+
   for (const channel of channels) {
     await env.SLACK_STATS_QUEUE.send({
       channelId: channel.id
