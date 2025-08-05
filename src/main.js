@@ -28,8 +28,6 @@ async function processSlackStats(channelId, env) {
   if (existing !== newValue) {
     console.log(`Updated stats for channel ${channelId}:  ${newValue}`);
     await env.SLACK_KV.put(key, newValue);
-  } else {
-    console.log(`No changes for channel ${channelId}`);
   }
 }
 
